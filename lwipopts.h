@@ -16,8 +16,15 @@
 
 // Enabling ARP, IPV4, and debug
 #define LWIP_ARP 1
-//#define LWIP_DEBUG 1
 #define LWIP_IPV4 1
+
+// Now going to raw packet manipulation
+#define LWIP_PROVIDE_ERRNO 1
+#define LWIP_RAW 1
+#define LWIP_NETIF_API 1
+#define LWIP_ETHERNET 1
+#define IP_FORWARD 1
+#define IP_FORWARD_ALLOW_TX_ON_RX_NETIF 1
 
 // Debug levels
 //#define ETHARP_DEBUG LWIP_DBG_ON
