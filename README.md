@@ -14,3 +14,8 @@ ARP Spoofing is done using lwip framework. It will send out ARP request to all d
 For saving to the SD card, it makes use of the Micro SD Card Slot which then uses the FatFS_SPI driver on the pico.
 
 Capturing of packets utilizes Nexmon which is a patch for the Pico.
+
+After getting the pcap file from SD card, we can make use of wireshark in a Desktop computer, to get the credentials that we want for this experiment
+Step 1)  filter the search result in Wireshark with this "http.request.method == POST"
+Step 2)  find the hex number "0d 0a 0d 0a" which represent . . . .
+Step 3)  get all the hex number after step 2 and you will get the credentials the target uses in an unsecured website.
