@@ -1,25 +1,20 @@
 # WIFI Sniffing + Analysis
-Our team has decided to program the Pico W to sniff for WIFI networks, followed by the hosts that are connected to the network.
 
-After which, the Pico W will run ARP Spoofing which allows it to capture any username and password inputted by a victim if he/she
-enters a website with no SSL to encrypt their password inputs. For this, we will be using demo.testfire.net to demonstrate this.
+## Overview
+The team's original goal was to have 1 Raspberry Pi Pico W be used for ARP Spoofing, while another Raspberry Pi Pico W would be to capture, analyse, and save the network packets.
+ARP Spoofing makes use of lwIP which is an open-source TCP/IP stack. The program will first try to connect to a specified Wifi network.
+It will scan the network for the hosts on it.
+After which, it will select a target and a gateway.
+It will check if the char 'S' has been sent, if not, it will send an ARP packet to the target and the gateway. After which it will disconnect from the Wifi network.
 
-The Pico will be able to capture these network traffic like Wireshark and will then be saved onto a Micro SD card as a pcap file.
+In the process, a victim will be connected to the same WiFi network and surfing any website. If the victim surfs a vulnerable website, such as demo.testfire.net and keys certain credentials. The other Pico will capture those network packets.
 
-This pcap file can be opened by the "attacker" on another Pico to examine the network traffic and also see if the
-victim has visited the malicious website and inputted his/her credentials.
+The Network Capturing Pico uses Nexmon to capture the packets in promiscuous mode and is able to save them onto an SD card with the use of the FatFS_SPI while the Pico is connected with the Maker Pi Pico.
 
-ARP Spoofing is done using lwip framework. It will send out ARP request to all devices over the connected network.
+These network packets are obtained using a payload and then saved in its raw hexadecimal form in a txt file on the pico.
 
-For saving to the SD card, it makes use of the Micro SD Card Slot which then uses the FatFS_SPI driver on the pico.
+The Pico will then be able to open the txt file and convert the hexadecimals into clear text in order to analyse the packets to obtain the username and password the victim as inputted in the vulnerable website.
 
-Capturing of packets utilizes Nexmon which is a patch for the Pico.
-
-After getting the pcap file from SD card, we can make use of wireshark in a Desktop computer, to get the credentials that we want to see in an unsecured(http) website.
-Step 1)  filter the search result in Wireshark with this "http.request.method == POST"
-Step 2)  find the hex number "0d 0a 0d 0a" which represent . . . .
-Step 3)  get all the hex number after step 2 and you will get the credentials the target uses in an unsecured website.
-
-Future Changes/ Improvement
+## Future Changes/ Improvement
 Potential improvement is to include packet analysis code in the pico. 
 Integrate SD card and Nexmon into a combine code.
