@@ -21,6 +21,12 @@ The Pico will then be able to open the txt file and convert the hexadecimals int
 - Fat32_SPI
 - idk what else
 
+## Task Allocation
+- ARP Spoofing: Teng Hui
+- SD Card Read/Write: Steven
+- Packet Monitoring/Capture: Teng Jun
+- Packet Analysis: Jin Yuan & Yi Heng
+
 ## Future Changes/ Improvement
 Potential improvement is to include packet analysis code in the pico. 
 Integrate SD card and Nexmon into a combine code.
