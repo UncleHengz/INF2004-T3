@@ -2,14 +2,17 @@ from collections import Counter
 import matplotlib.pyplot as plt
 
 # Read the contents of the packets.txt file
-with open('packets.txt', 'r') as file:
+with open('packet_log.txt', 'r') as file:
     data = file.read()
 
 # Convert hex string to ASCII
 data = data.replace(' ', '').replace('\n', '')  # Remove spaces and newlines
 
 # Convert hex to ASCII characters
-ascii_data = bytes.fromhex(data).decode('utf-8')  # Convert hex to ASCII
+ascii_data = bytes.fromhex(data).decode('utf-8', errors='ignore')  # Convert hex to ASCII
+
+# Insert a newline before "POST"
+ascii_data = ascii_data.replace('POST', '\nPOST')
 
 # Extract usernames and passwords using regex pattern
 import re
