@@ -39,3 +39,4 @@ The Python script first opens the text file from the SD card and converts all he
 ## Future Changes/ Improvement
 - Reduce APR Spoofing + IP Forwarding lag.
 - On the spot translation of network packets to UTF-8 like Wireshark
+- Maybe saving the analysis results to the cloud for easy retrieval
