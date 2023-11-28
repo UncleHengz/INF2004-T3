@@ -37,5 +37,5 @@ The Python script first opens the text file from the SD card and converts all he
 - Packet Analysis: Jin Yuan & Yi Heng
 
 ## Future Changes/ Improvement
-Potential improvement is to include packet analysis code in the pico. 
-Integrate SD card and Nexmon into a combine code.
+- Reduce APR Spoofing + IP Forwarding lag.
+- On the spot translation of network packets to UTF-8 like Wireshark
