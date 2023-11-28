@@ -16,7 +16,7 @@ These network packets are obtained using a payload and then saved in its raw hex
 
 The Pico will then be able to open the txt file and convert the hexadecimal into clear text in order to analyse the packets to obtain the username and password the victim as inputted in the vulnerable website.
 
-However, we were not able to transfer the network traffic from the ARP Spoofing Pico to the Network Capturing Pico. Also, nexmon does not allow us to capture the network packets that we want. During testing, we were only able to obtain beacon packets which were redundant to us.
+However, we were not able to transfer the network traffic from the ARP Spoofing Pico to the Network Capturing Pico and the IP forwarding when conducting the ARP spoofing is extremely laggy and slow even when using 1 Pico for conducting ARP Spoofing and 1 Pico to capture the network packets. Also, nexmon does not allow us to capture the network packets that we want. During testing, we were only able to obtain beacon packets which were redundant to us.
 
 ### Achieved Outcome
 Instead, only 1 Raspberry Pi Pico is used. The pico will use the CYW43439 library to create a DHCP server and a web server on it. However, this does not provide internet access to hosts that connects to this DHCP server. The hosts that connect to this access point will only be able to access the web server. On the web server, there is a simple login page with 2 input text boxes: 'Username', 'Password'. Upon filling up both fields and the submit is pressed, the pico is able to obtain all traffic that passes through its network.
