@@ -19,7 +19,7 @@ The Pico will then be able to open the txt file and convert the hexadecimal into
 However, we were not able to transfer the network traffic from the ARP Spoofing Pico to the Network Capturing Pico and the IP forwarding when conducting the ARP spoofing is extremely laggy and slow even when using 1 Pico for conducting ARP Spoofing and 1 Pico to capture the network packets. Also, nexmon does not allow us to capture the network packets that we want. During testing, we were only able to obtain beacon packets which were redundant to us.
 
 ### Achieved Outcome
-Instead, only 1 Raspberry Pi Pico is used. The pico will use the CYW43439 library to create a DHCP server and a web server on it. However, this does not provide internet access to hosts that connects to this DHCP server. The hosts that connect to this access point will only be able to access the web server. On the web server, there is a simple login page with 2 input text boxes: 'Username', 'Password'. Upon filling up both fields and the submit is pressed, the pico is able to obtain all traffic that passes through its network.
+Instead, only 1 Raspberry Pi Pico is used. The pico will use the CYW43439 library to create a DHCP server and a web server on it. However, this does not provide internet access to hosts that connects to this DHCP server. The hosts that connect to this access point will only be able to access the web server. On the web server, there is a simple login page with 2 input text boxes: 'Username', 'Password'. Upon filling up both fields and the submit button is pressed, the pico is able to obtain all traffic that passes through its network.
 
 These traffic are payloads which are raw hexadecimal form and will be printed onto the pico's serial monitor. At the same time, these payloads will be saved onto an SD card which is connected to the Maker Pi Pico using the FatFS_SPI library. Then, we will be able to take the SD card & connect it to any PC and run the Python script to analyse the packets.
 
@@ -37,6 +37,6 @@ The Python script first opens the text file from the SD card and converts all he
 - Packet Analysis: Jin Yuan & Yi Heng
 
 ## Future Changes/ Improvement
-- Reduce APR Spoofing + IP Forwarding lag.
+- Reduce ARP Spoofing + IP Forwarding lag.
 - On the spot translation of network packets to UTF-8 like Wireshark
 - Maybe saving the analysis results to the cloud for easy retrieval
