@@ -1,3 +1,4 @@
+// TH
 #include <stdio.h>
 #include "pico/cyw43_arch.h"
 #include "pico/stdlib.h"
@@ -15,7 +16,7 @@
 #include "lwip/udp.h"
 #include "lwip/tcp.h"
 
-// Define the Ethernet ethertype for ARP
+// Define the Ethernet ethertype for ARP.
 #define ARP_PROTOCOL 0x0806
 
 #ifndef RUN_FREERTOS_ON_CORE
@@ -24,6 +25,7 @@
 
 #define TEST_TASK_PRIORITY (tskIDLE_PRIORITY + 1UL)
 
+// Function to connect to the target WIFI network.
 void connectWIFI()
 {
     if (cyw43_arch_init()) 
@@ -36,34 +38,37 @@ void connectWIFI()
 
     while (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 15000)) 
     {
-        // Failed to connect, retry after a delay
+        // Failed to connect, retry after a delay.
         printf("Failed to connect. Retrying in 15 seconds...\n");
         vTaskDelay(15000 / portTICK_PERIOD_MS);
     }
     printf("Connected.\n");
 }
 
+// Main task.
 void main_task(__unused void *params) 
 {
     connectWIFI();
 
-    // Get the device's IP address
+    // Get the device's IP address.
     struct netif* netif = &cyw43_state.netif[0];
     ip_addr_t ip = netif->ip_addr;
 
-    // Set device_mac using the MAC address of the netif
+    // Set device_mac using the MAC address of the netif.
     struct eth_addr device_mac;
     SMEMCPY(&device_mac, netif->hwaddr, ETH_HWADDR_LEN);
 
-    // Get the first three octets from the device's IP address
+    // Get the first three octets from the device's IP address.
     uint8_t octet1 = ip4_addr1_16(&ip);
     uint8_t octet2 = ip4_addr2_16(&ip);
     uint8_t octet3 = ip4_addr3_16(&ip);
 
+    // Prints out the device's information.
     printf("\nDevice IP: %u.%u.%u.%u\n", octet1, octet2, octet3, ip4_addr4_16(&ip));
     printf("Device MAC: %02X:%02X:%02X:%02X:%02X:%02X\n\n", device_mac.addr[0], device_mac.addr[1], 
     device_mac.addr[2], device_mac.addr[3], device_mac.addr[4], device_mac.addr[5]);    
 
+    // While loop to have the main task run indefinitely.
     while(getchar_timeout_us(0) != 'S')
     {
         tight_loop_contents();
