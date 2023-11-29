@@ -1,3 +1,5 @@
+# This CmakeLists applies to both the Pico Spoofer and Receiver.
+
 if (EXISTS ${PICO_LWIP_CONTRIB_PATH}/apps/ping/ping.c)
     add_executable(pico_freertos_arp_spoof_sys
             pico_freertos_arp_spoof.c
