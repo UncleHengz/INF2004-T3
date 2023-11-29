@@ -1,2 +1,4 @@
 To use the spoofer, please overwrite the default etharp.c and etharp.h with these ones, along with using this specific lwipopts.h with the C file. 
 Use the provided CmakeLists.txt for both the receiver and spoofer, switching the SSID and password to the target WIFI network.
+
+This ARP spoofer first connects to a target WIFI network input in the CMakeLists.txt in the folder, get's an IP address, then scans the network. It then allows the user to use the Pico's buttons to select a target and its corresponding router gateway, to spoof the connection between then to have the Receiver act as a MITM to intercept packets and network traffic. Attempting to have the pico do both at the same time with only 1 core causes the forwarding to slow to such a degree that it completely fails. Therefore, one pico is assigned to continously spoof the target and gateway's ARP tables, and the other is used to monitor and forward the traffic between them.
