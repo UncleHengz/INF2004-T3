@@ -366,14 +366,14 @@ int main() {
     async_context_add_when_pending_worker(cyw43_arch_async_context(), &key_pressed_worker);
     stdio_set_chars_available_callback(key_pressed_func, state);
 
-    const char *ap_name = "picow_test";
+    const char *ap_name = "Wireless@SG";
 #if 1
-    const char *password = "password";
+    const char *password = "";
 #else
     const char *password = NULL;
 #endif
 
-    cyw43_arch_enable_ap_mode(ap_name, password, CYW43_AUTH_WPA2_AES_PSK);
+    cyw43_arch_enable_ap_mode(ap_name, password, CYW43_AUTH_OPEN);
 
     ip4_addr_t mask;
     IP4_ADDR(ip_2_ip4(&state->gw), 192, 168, 4, 1);
